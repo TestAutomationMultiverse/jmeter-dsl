@@ -48,7 +48,7 @@ the repo is a maven project with the following dependencies:
 
 ### Running the Test locally
 1. bring up the system under test (SUT)  as per outlined in the repo
-2. any performance test needs a monitoring stack so using docker-compose.yml bring up promethus/graphana stack to have a realtime monitoring of the test, sut and infra
+2. any performance test needs a monitoring stack so using docker-compose.yml bring up promethus/grafana stack to have a realtime monitoring of the test, sut and infra
 2. run mvn test and check the report in target/report
 
 
