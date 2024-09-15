@@ -1,0 +1,247 @@
+@startuml
+class JmeterDsl {
+  ..
+}
+
+package core {
+
+  abstract class BaseTestElement {
+    String name
+    TestElement buildTestElement()
+  }
+
+  interface DslTestElement extends BaseTestElement {
+    HashTree buildTreeUnder(HashTree parent, BuildTreeContext context)
+    void showInGui()
+  }
+
+  class BuildTreeContext {
+    Map<String, Object> entries
+    Map<DslVisualizer, Supplier<Component>> visualizers
+  }
+
+  class DslTestPlan {
+    TestPlanStats run()
+    TestPlanStats runIn(DslJmeterEngine engine)
+    void saveAsJmx(String filePath)
+    {static} DslTestPlan fromJmx(String filePath)
+  }
+
+  package testelements {
+
+    interface MultiLevelTestElement extends DslTestElement
+
+    abstract class BaseThreadGroup extends BaseTestElement implements DslThreadGroup {
+      SampleErrorAction sampleErrorAction
+      List<Stage> stages
+    }
+
+    interface DslThreadGroup extends MultiLevelTestElement
+
+    interface ThreadGroupChild extends DslTestElement
+
+    class DslDefaultThreadGroup extends BaseThreadGroup {
+      ..
+    }
+
+    class Stage {
+        int threads
+        int iterations
+        Duration duration
+    }
+
+    abstract class DslSimpleThreadGroup extends BaseThreadGroup {
+      int iterations
+      int threads
+    }
+
+    abstract class DslConfigElement extends BaseTestElement implements DslConfig
+
+    package engines {
+
+      class EmbeddedJmeterEngine implements DslJmeterEngine
+
+      class JmeterEnvironment {
+        File homeDir
+      }
+
+      EmbeddedJmeterEngine ..> JmeterEnvironment
+
+    }
+
+    package samplers {
+
+      interface DslSampler
+
+      abstract class BaseSampler extends BaseTestElement implements DslSampler
+
+      class DslDummySampler extends BaseSampler {
+        String responseBody
+        boolean successful
+        String responseCode
+        String responseMessage
+        Duration responseTime
+        boolean simulateResponseTime
+        String url
+        String requestBody
+      }
+
+    }
+
+    package preprocessors {
+
+      interface DslPreProcessor extends MultiLevelTestElement
+
+      class DslJsr223PreProcessor extends DslJsr223TestElement implements DslPreProcessor
+
+      interface PreProcessorScript extends Jsr223Script
+
+      class PreProcessorVars extends Jsr223ScriptVars
+
+    }
+
+    package postprocessors {
+
+      interface DslPostProcessor extends MultiLevelTestElement
+
+      class DslJsr223PostProcessor extends DslJsr223TestElement implements DslPostProcessor
+
+      interface PostProcessorScript extends Jsr223Script
+
+      class PostProcessorVars extends Jsr223ScriptVars
+
+      abstract class DslVariableExtractor extends DslScopedTestElement implements DslPostProcessor {
+        String varName
+        int matchNumber
+        String defaultValue
+      }
+
+      class DslRegexExtractor extends DslVariableExtractor {
+        String regex
+        String template
+        ExtractorTargetField fieldToCheck
+      }
+
+      enum ExtractorTargetField {
+        RESPONSE_BODY
+        RESPONSE_BODY_UNESCAPED
+        RESPONSE_BODY_AS_DOCUMENT
+        RESPONSE_HEADERS
+        REQUEST_HEADERS
+        REQUEST_URL
+        RESPONSE_CODE
+        RESPONSE_MESSAGE
+      }
+
+      class DslBoundaryExtractor extends DslVariableExtractor {
+        String leftBoundary
+        String rightBoundary
+        ExtractorTargetField fieldToCheck
+      }
+
+      DslRegexExtractor ..> ExtractorTargetField
+      DslBoundaryExtractor ..> ExtractorTargetField
+
+      class DslJsonExtractor extends DslVariableExtractor {
+        String jmesPath
+      }
+
+      class DslDebugPostProcessor extends BaseTestElement implements DslPostProcessor {
+        boolean includeSamplerProperties
+        boolean includeVariables
+        boolean includeJmeterProperties
+        boolean includeSystemProperties
+      }
+
+    }
+
+    package assertions {
+
+      interface DslAssertion extends MultiLevelTestElement
+
+      class DslResponseAssertion extends DslScopedTestElement implements DslAssertion {
+        AssertionTargetField fieldToTest
+        boolean ignoreStatus
+        String[] testStrings
+        TestStringStrategy testStrategy
+        boolean invertCheck
+        boolean anyMatch
+      }
+
+      enum AssertionTargetField {
+        RESPONSE_BODY
+        RESPONSE_BODY_AS_DOCUMENT
+        RESPONSE_CODE
+        RESPONSE_MESSAGE
+        RESPONSE_HEADERS
+        REQUEST_HEADERS
+        REQUEST_URL
+        REQUEST_BODY
+      }
+
+      enum TestStringStrategy {
+        SUBSTRING
+        EQUALS
+        CONTAINS_REGEX
+        MATCHES_REGEX
+      }
+
+      DslResponseAssertion ..> AssertionTargetField
+      DslResponseAssertion ..> TestStringStrategy
+
+    }
+
+    package timers {
+
+      interface DslTimer extends MultiLevelTestElement
+
+      abstract class BaseTimer extends BaseTestElement implements DslTimer
+
+      class DslConstantTimer extends BaseTimer {
+        long delayMillis
+      }
+
+      class DslUniformRandomTimer extends BaseTimer {
+        long minimumMillis
+        long maximumMillis
+      }
+
+    }
+
+  }
+
+  DslTestPlan ..> TestPlanChild
+  DslTestPlan ..> EmbeddedJmeterEngine
+  DslTestElement ..> BuildTreeContext
+  DslTestPlan -up-|> TestElementContainer
+  DslSampler .up.|> ThreadGroupChild
+  MultiLevelTestElement .up.|> ThreadGroupChild
+  MultiLevelTestElement .up.|> SamplerChild
+  DslIfController --> PropertyScriptBuilder
+  DslWhileController --> PropertyScriptBuilder
+
+}
+
+package org.apache.jmeter {
+  class HashTree
+  interface TestElement
+}
+
+package http {
+}
+
+package java {
+}
+
+package codegeneration {
+}
+
+JmeterDsl ..> core
+JmeterDsl ..> http
+JmeterDsl ..> java
+core ..> codegeneration
+core ..> org.apache.jmeter
+
+@enduml
+
+

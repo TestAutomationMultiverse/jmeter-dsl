@@ -1,0 +1,11 @@
+{
+    "cSpell.words": [
+        "abstracta",
+        "assertj",
+        "javadsl",
+        "jinjava",
+        "jmeter"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic"
+}
