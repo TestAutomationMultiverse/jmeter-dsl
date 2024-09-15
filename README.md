@@ -13,6 +13,7 @@ JMeter DSL is a great option for integrating performance testing into agile team
 - **ThreadGroup** is a class that represents a group of threads that will be used to execute the test. It has several methods called **TestElements** that allow you to configure the group, such as the number of threads, the ramp-up period, and the loop count.
 - as we already know the jmeter Gui, the jmeter DSl has the following elements as samplers, timers, thread groups, assertions, preprocessors, postprocessors, etc...
 
+![JMeter DSL](jmeterDSL.png)
 
 ## The Demo
 
@@ -40,42 +41,10 @@ source code for this repo is outlined here:
 ### Jmeter dsl repo
 the repo is a maven project with the following dependencies:
 
-### Simple HTTP test plan
-
-    @Test
-    public void testPerformance() throws IOException {
-        // Test Plan
-        // =========
-        TestPlanStats stats = testPlan(
-                // Thread Group
-                // ============
-                // 2 threads, 10 loops each
-                threadGroup(2, 10,
-                        // HTTP Sampler
-                        // ===========
-                        // Send a request to the localhost on api products endpoint
-                        httpSampler("http://127.0.0.1:8000/api/products")),
-                // HTML Reporter
-                // =============
-                // Save the report to the target/jmeter-html-report directory
-                htmlReporter("target/jmeter-html-report"))
-            .run();
-
-        // Assertions
-        // ==========
-        // Verify that the 99th percentile of the response time is less than 5 seconds
-        assertThat(stats.overall().sampleTimePercentile99()).isLessThan(Duration.ofSeconds(5));
-
-        // Verify that there are no errors
-        assertThat(stats.overall().errorCount()).isEqualTo(0);
-
-        // Verify that there are 20 OKs
-        assertThat(stats.overall().okCount()).isEqualTo(20);
-
-        // Verify that there are 20 "200" responses
-        assertThat(stats.overall().sampleLabel("HTTP Request").responseCode("200").count()).isEqualTo(20);
-    }
-
+    - junit version: 5.11.0
+    - jmeter-java-dsl version: 1.29
+    - javafaker version: 1.0.2
+    - jinjava version: 2.7.3
 
 ### Running the Test locally
 1. bring up the system under test (SUT)  as per outlined in the repo
